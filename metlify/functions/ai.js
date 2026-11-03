@@ -1,4 +1,4 @@
-maydon-ai-yangi / netlify / functions / ai.js// AI Maydon — provayderlar zanjiri. Bittasi ishlamasa, keyingisiga o‘tadi.
+// AI Maydon — provayderlar zanjiri. Bittasi ishlamasa, keyingisiga o‘tadi.
 const PROVIDERS = {
   gemini:     { url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", key: "GEMINI_API_KEY",     model: "gemini-2.5-flash" },
   groq:       { url: "https://api.groq.com/openai/v1/chat/completions",                          key: "GROQ_API_KEY",       model: "llama-3.3-70b-versatile" },
