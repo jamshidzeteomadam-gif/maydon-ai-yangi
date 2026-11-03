@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Maydon</title>
+<style>
+:root{--bg:#0e1424;--panel:#161d33;--line:#2a3558;--text:#e8ecf8;--mute:#8d99bd;--acc:#5eead4;--err:#ff8a8a}
+@media (prefers-color-scheme: light){:root{--bg:#f3f5fb;--panel:#fff;--line:#d5dbee;--text:#151a2e;--mute:#5b6686;--acc:#0f766e;--err:#b42323}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,sans-serif;display:grid;grid-template-columns:minmax(300px,380px) 1fr;min-height:100vh}
+aside{padding:24px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
+h1{margin:0;font-size:22px}
+textarea,input,button{font:inherit;color:inherit}
+textarea,input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}
+textarea{min-height:150px;resize:vertical}
+button{background:var(--acc);color:#05201c;border:0;border-radius:8px;padding:11px;font-weight:600;cursor:pointer}
+button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+button:disabled{opacity:.5;cursor:wait}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+#steps{margin:0;padding:0;list-style:none;color:var(--mute);font-size:14px}
+#steps li.err{color:var(--err)}
+main{display:flex;flex-direction:column;min-width:0}
+iframe{flex:1;border:0;background:#fff;min-height:60vh}
+.bar{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.bar button{flex:0 0 auto;padding:8px 14px}
+@media(max-width:760px){body{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}}
+</style>
+</head>
+<body>
+<aside>
+  <h1>AI Maydon</h1>
+  <label for="p">G‘oyangizni yozing</label>
+  <textarea id="p" placeholder="Masalan: Ajdarho bosh bilan Snake o‘yini, tezlik sozlamasi bilan"></textarea>
+  <input id="a" type="password" placeholder="Kirish kodi (agar qo‘yilgan bo‘lsa)">
+  <button id="go">Loyihani yaratish</button>
+  <ul id="steps"></ul>
+</aside>
+<main>
+  <div class="bar"><button class="ghost" id="dl" disabled>HTML yuklab olish</button><button class="ghost" id="cp" disabled>Kodni nusxalash</button></div>
+  <iframe id="v" sandbox="allow-scripts" title="Natija"></iframe>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+let code="", pendingErr=null;
+const MAX_FIX=2;
+
+const log=(t,cls)=>{const li=document.createElement("li");li.textContent=t;if(cls)li.className=cls;$("steps").append(li)};
+
+async function ask(body){
+  const r=await fetch("/.netlify/functions/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...body,access:$("a").value})});
+  const d=await r.json();
+  if(!r.ok) throw new Error(d.error+(d.tried?" ("+d.tried.join(", ")+")":""));
+  return d;
+}
+
+// Kodni iframe’da ishga tushiradi va 2.5 soniya ichida xato chiqsa, uni qaytaradi.
+function run(html){
+  return new Promise(res=>{
+    const probe="<script>addEventListener('error',e=>parent.postMessage({maydonErr:e.message},'*'));addEventListener('unhandledrejection',e=>parent.postMessage({maydonErr:String(e.reason)},'*'))<\/script>";
+    pendingErr=null;
+    const on=e=>{if(e.data&&e.data.maydonErr&&!pendingErr)pendingErr=e.data.maydonErr};
+    addEventListener("message",on);
+    $("v").srcdoc=probe+html;
+    setTimeout(()=>{removeEventListener("message",on);res(pendingErr)},2500);
+  });
+}
+
+$("go").onclick=async()=>{
+  const prompt=$("p").value.trim(); if(!prompt) return;
+  $("go").disabled=true; $("steps").innerHTML=""; $("dl").disabled=$("cp").disabled=true;
+  try{
+    log("Kod yozilmoqda…");
+    let d=await ask({mode:"generate",prompt}); code=d.code; log("Yozdi: "+d.provider);
+    let err=await run(code);
+    for(let i=1;err&&i<=MAX_FIX;i++){
+      log("Xato topildi: "+err,"err"); log(`Tuzatilmoqda (${i}/${MAX_FIX})…`);
+      d=await ask({mode:"fix",prompt,code,error:err}); code=d.code; log("Tuzatdi: "+d.provider);
+      err=await run(code);
+    }
+    log(err?"Xato to‘liq tuzalmadi. Tavsifni aniqroq yozib ko‘ring.":"Tayyor. Xato topilmadi.",err?"err":"");
+    $("dl").disabled=$("cp").disabled=false;
+  }catch(e){log(e.message,"err")}
+  $("go").disabled=false;
+};
+$("dl").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([code],{type:"text/html"}));a.download="loyiha.html";a.click()};
+$("cp").onclick=()=>navigator.clipboard.writeText(code).then(()=>log("Kod nusxalandi."));
+</script>
+</body>
+</html>
