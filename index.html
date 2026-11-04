@@ -1,90 +1,95 @@
 <!doctype html>
-<html lang="uz">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AI Maydon</title>
+<html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AI Maydon</title>
 <style>
-:root{--bg:#0e1424;--panel:#161d33;--line:#2a3558;--text:#e8ecf8;--mute:#8d99bd;--acc:#5eead4;--err:#ff8a8a}
-@media (prefers-color-scheme: light){:root{--bg:#f3f5fb;--panel:#fff;--line:#d5dbee;--text:#151a2e;--mute:#5b6686;--acc:#0f766e;--err:#b42323}}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,sans-serif;display:grid;grid-template-columns:minmax(300px,380px) 1fr;min-height:100vh}
-aside{padding:24px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:12px}
-h1{margin:0;font-size:22px}
-textarea,input,button{font:inherit;color:inherit}
-textarea,input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px}
-textarea{min-height:150px;resize:vertical}
-button{background:var(--acc);color:#05201c;border:0;border-radius:8px;padding:11px;font-weight:600;cursor:pointer}
-button.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
-button:disabled{opacity:.5;cursor:wait}
-:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-#steps{margin:0;padding:0;list-style:none;color:var(--mute);font-size:14px}
-#steps li.err{color:var(--err)}
-main{display:flex;flex-direction:column;min-width:0}
-iframe{flex:1;border:0;background:#fff;min-height:60vh}
-.bar{display:flex;gap:8px;padding:12px 16px;border-bottom:1px solid var(--line)}
-.bar button{flex:0 0 auto;padding:8px 14px}
-@media(max-width:760px){body{grid-template-columns:1fr}aside{border-right:0;border-bottom:1px solid var(--line)}}
-</style>
-</head>
-<body>
+:root{--bg:#0e1424;--pn:#161d33;--ln:#2a3558;--tx:#e8ecf8;--mu:#8d99bd;--ac:#5eead4;--er:#ff8a8a}
+@media(prefers-color-scheme:light){:root{--bg:#f3f5fb;--pn:#fff;--ln:#d5dbee;--tx:#151a2e;--mu:#5b6686;--ac:#0f766e;--er:#b42323}}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,sans-serif;display:grid;grid-template-columns:minmax(320px,420px) 1fr}
+aside{display:flex;flex-direction:column;padding:16px;gap:10px;border-right:1px solid var(--ln);min-height:0;height:100vh}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+#log{flex:1;overflow:auto;display:flex;flex-direction:column;gap:8px;min-height:0}
+.m{padding:9px 12px;border-radius:10px;max-width:92%;white-space:pre-wrap;overflow-wrap:anywhere}
+.u{background:var(--ac);color:#05201c;align-self:flex-end}.a{background:var(--pn);border:1px solid var(--ln)}
+.s{color:var(--mu);font-size:13px;padding:0 4px}.e{color:var(--er);font-size:13px}
+#opts{display:flex;flex-wrap:wrap;gap:6px}
+input,textarea{width:100%;background:var(--pn);border:1px solid var(--ln);border-radius:8px;padding:9px;font:inherit;color:inherit}
+.row{display:flex;gap:8px}textarea{resize:none}
+button{font:inherit;background:var(--ac);color:#05201c;border:0;border-radius:8px;padding:9px 14px;font-weight:600;cursor:pointer}
+button.g{background:transparent;color:var(--tx);border:1px solid var(--ln);padding:6px 11px;font-weight:500}
+button:disabled{opacity:.5;cursor:wait}:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+main{display:flex;flex-direction:column;min-width:0;height:100vh}
+.bar{display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--ln)}
+iframe{flex:1;border:0;background:#fff}
+@media(max-width:760px){body{grid-template-columns:1fr}aside,main{height:auto;min-height:60vh}iframe{min-height:60vh}}
+</style></head><body>
 <aside>
-  <h1>AI Maydon</h1>
-  <label for="p">G‘oyangizni yozing</label>
-  <textarea id="p" placeholder="Masalan: Ajdarho bosh bilan Snake o‘yini, tezlik sozlamasi bilan"></textarea>
-  <input id="a" type="password" placeholder="Kirish kodi (agar qo‘yilgan bo‘lsa)">
-  <button id="go">Loyihani yaratish</button>
-  <ul id="steps"></ul>
+<header><b style="font-size:20px">AI Maydon</b><span><button class="g" id="nw">Yangi loyiha</button> <button class="g" id="cm">Xotirani o‘chirish</button></span></header>
+<div id="log"></div><div id="opts"></div>
+<input id="ac" type="password" placeholder="Kirish kodi (agar qo‘yilgan bo‘lsa)">
+<div class="row"><textarea id="p" rows="2" placeholder="Yozing…"></textarea><button class="g" id="up" title="Rasm yuklash">Rasm</button><input type="file" id="fi" accept="image/*" hidden><button id="go">Yuborish</button></div>
 </aside>
-<main>
-  <div class="bar"><button class="ghost" id="dl" disabled>HTML yuklab olish</button><button class="ghost" id="cp" disabled>Kodni nusxalash</button></div>
-  <iframe id="v" sandbox="allow-scripts" title="Natija"></iframe>
-</main>
+<main><div class="bar"><button class="g" id="dl" disabled>HTML yuklab olish</button><button class="g" id="cp" disabled>Kodni nusxalash</button></div>
+<iframe id="v" sandbox="allow-scripts" title="Natija"></iframe></main>
 <script>
-const $=id=>document.getElementById(id);
-let code="", pendingErr=null;
-const MAX_FIX=2;
-
-const log=(t,cls)=>{const li=document.createElement("li");li.textContent=t;if(cls)li.className=cls;$("steps").append(li)};
-
-async function ask(body){
-  const r=await fetch("/.netlify/functions/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...body,access:$("a").value})});
+const $=i=>document.getElementById(i),LS=localStorage;
+let msgs=[],code="",busy=false,img="";
+const show=c=>c.split("__RASM__").join(img);
+const notes=()=>{try{return JSON.parse(LS.getItem("notes")||"[]")}catch{return[]}};
+const say=(t,c)=>{const d=document.createElement("div");d.className="m "+c;d.textContent=t;$("log").append(d);$("log").scrollTop=1e9};
+async function api(b){
+  const r=await fetch("/.netlify/functions/ai",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...b,access:$("ac").value})});
   const d=await r.json();
-  if(!r.ok) throw new Error(d.error+(d.tried?" ("+d.tried.join(", ")+")":""));
+  if(!r.ok)throw new Error(d.error+(d.tried?" ("+d.tried.join(", ")+")":""));
   return d;
 }
-
-// Kodni iframe’da ishga tushiradi va 2.5 soniya ichida xato chiqsa, uni qaytaradi.
 function run(html){
   return new Promise(res=>{
-    const probe="<script>addEventListener('error',e=>parent.postMessage({maydonErr:e.message},'*'));addEventListener('unhandledrejection',e=>parent.postMessage({maydonErr:String(e.reason)},'*'))<\/script>";
-    pendingErr=null;
-    const on=e=>{if(e.data&&e.data.maydonErr&&!pendingErr)pendingErr=e.data.maydonErr};
-    addEventListener("message",on);
-    $("v").srcdoc=probe+html;
-    setTimeout(()=>{removeEventListener("message",on);res(pendingErr)},2500);
+    let err=null;
+    const probe="<script>addEventListener('error',e=>parent.postMessage({me:e.message},'*'));addEventListener('unhandledrejection',e=>parent.postMessage({me:String(e.reason)},'*'))<\/script>";
+    const on=e=>{if(e.data&&e.data.me&&!err)err=e.data.me};
+    addEventListener("message",on);$("v").srcdoc=probe+html;
+    setTimeout(()=>{removeEventListener("message",on);res(err)},2500);
   });
 }
-
-$("go").onclick=async()=>{
-  const prompt=$("p").value.trim(); if(!prompt) return;
-  $("go").disabled=true; $("steps").innerHTML=""; $("dl").disabled=$("cp").disabled=true;
+async function build(brief){
+  say(code?"Loyiha o‘zgartirilmoqda…":"Loyiha yozilmoqda…","s");
+  let d=await api({mode:code?"edit":"generate",prompt:brief,code});code=d.code;say("Yozdi: "+d.provider,"s");
+  let err=await run(show(code));
+  for(let i=1;err&&i<=2;i++){say("Xato: "+err+". Tuzatilmoqda…","s");d=await api({mode:"fix",prompt:brief,code,error:err});code=d.code;err=await run(show(code))}
+  say(err?"Xato to‘liq tuzalmadi. Nima yoqmaganini yozing, tuzataman.":"Tayyor! Nimani o‘zgartiramiz?","a");
+  $("dl").disabled=$("cp").disabled=false;
+}
+async function send(t){
+  t=t.trim();if(busy||!t)return;busy=true;$("go").disabled=true;$("opts").innerHTML="";$("p").value="";
+  say(t,"u");msgs.push({role:"user",content:t});
   try{
-    log("Kod yozilmoqda…");
-    let d=await ask({mode:"generate",prompt}); code=d.code; log("Yozdi: "+d.provider);
-    let err=await run(code);
-    for(let i=1;err&&i<=MAX_FIX;i++){
-      log("Xato topildi: "+err,"err"); log(`Tuzatilmoqda (${i}/${MAX_FIX})…`);
-      d=await ask({mode:"fix",prompt,code,error:err}); code=d.code; log("Tuzatdi: "+d.provider);
-      err=await run(code);
-    }
-    log(err?"Xato to‘liq tuzalmadi. Tavsifni aniqroq yozib ko‘ring.":"Tayyor. Xato topilmadi.",err?"err":"");
-    $("dl").disabled=$("cp").disabled=false;
-  }catch(e){log(e.message,"err")}
-  $("go").disabled=false;
+    const d=await api({mode:"chat",messages:msgs.slice(-16),hasCode:!!code,hasImage:!!img,notes:notes()});
+    msgs.push({role:"assistant",content:d.say||"…"});say(d.say,"a");
+    if(d.learn){const n=notes();n.push(d.learn);LS.setItem("notes",JSON.stringify(n.slice(-20)))}
+    d.options.slice(0,5).forEach(o=>{const b=document.createElement("button");b.className="g";b.textContent=o;b.onclick=()=>send(o);$("opts").append(b)});
+    if(d.ready&&d.brief)await build(d.brief);
+  }catch(e){say(e.message,"e")}
+  busy=false;$("go").disabled=false;
+}
+function reset(){msgs=[];code="";img="";$("log").innerHTML="";$("opts").innerHTML="";$("v").srcdoc="";$("dl").disabled=$("cp").disabled=true;
+  say("Salom! Nima yaratmoqchisiz? G‘oyangizni oddiy so‘z bilan yozing, men savol berib aniqlashtiraman.","a")}
+$("go").onclick=()=>send($("p").value);
+$("p").onkeydown=e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send($("p").value)}};
+$("nw").onclick=reset;
+$("cm").onclick=()=>{LS.removeItem("notes");say("Xotira tozalandi.","s")};
+$("dl").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([show(code)],{type:"text/html"}));a.download="loyiha.html";a.click()};
+$("cp").onclick=()=>navigator.clipboard.writeText(show(code)).then(()=>say("Kod nusxalandi.","s"));
+$("up").onclick=()=>$("fi").click();
+$("fi").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{const i=new Image();i.onload=()=>{
+    const k=Math.min(1,1024/Math.max(i.width,i.height)),c=document.createElement("canvas");
+    c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);
+    const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.drawImage(i,0,0,c.width,c.height);
+    img=c.toDataURL("image/jpeg",.85);if(code)$("v").srcdoc=show(code);
+    say("Rasm qabul qilindi: "+f.name+". Men uni ko‘rmayman, faqat joylayman. Qanday ishlatishni yozing (masalan: termos tanasiga o‘ra).","s")};
+    i.onerror=()=>say("Rasmni o‘qib bo‘lmadi.","e");i.src=r.result};
+  r.readAsDataURL(f);e.target.value="";
 };
-$("dl").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([code],{type:"text/html"}));a.download="loyiha.html";a.click()};
-$("cp").onclick=()=>navigator.clipboard.writeText(code).then(()=>log("Kod nusxalandi."));
-</script>
-</body>
-</html>
+reset();
+</script></body></html>
